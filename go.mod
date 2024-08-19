@@ -1,4 +1,4 @@
-module github.com/evozynth/kin-openapi
+module github.com/getkin/kin-openapi
 
 go 1.20
 
