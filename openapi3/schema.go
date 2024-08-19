@@ -1926,9 +1926,29 @@ func (schema *Schema) visitJSONObject(settings *schemaValidationSettings, value 
 
 			if value[propName] != nil {
 				if reqRO {
-					me = append(me, fmt.Errorf("readOnly property %q in request", propName))
+					err := markSchemaErrorKey(&SchemaError{
+						Value:                 value,
+						Schema:                schema,
+						SchemaField:           "readOnly",
+						Reason:                fmt.Sprintf("readOnly property %q in request", propName),
+						customizeMessageError: settings.customizeMessageError,
+					}, propName)
+					if !settings.multiError {
+						return err
+					}
+					me = append(me, err)
 				} else if repWO {
-					me = append(me, fmt.Errorf("writeOnly property %q in response", propName))
+					err := markSchemaErrorKey(&SchemaError{
+						Value:                 value,
+						Schema:                schema,
+						SchemaField:           "readOnly",
+						Reason:                fmt.Sprintf("writeOnly property %q in response", propName),
+						customizeMessageError: settings.customizeMessageError,
+					}, propName)
+					if !settings.multiError {
+						return err
+					}
+					me = append(me, err)
 				}
 			}
 		}
@@ -2032,13 +2052,13 @@ func (schema *Schema) visitJSONObject(settings *schemaValidationSettings, value 
 		if settings.failfast {
 			return errSchema
 		}
-		err := &SchemaError{
+		err := markSchemaErrorKey(&SchemaError{
 			Value:                 value,
 			Schema:                schema,
 			SchemaField:           "properties",
 			Reason:                fmt.Sprintf("property %q is unsupported", k),
 			customizeMessageError: settings.customizeMessageError,
-		}
+		}, k)
 		if !settings.multiError {
 			return err
 		}
